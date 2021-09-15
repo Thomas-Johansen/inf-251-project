@@ -75,6 +75,7 @@ namespace minity
 
 		bool m_showUi = true;
 		bool m_saveScreenshot = false;
+		bool m_vsync = false;
 	};
 
 	/**

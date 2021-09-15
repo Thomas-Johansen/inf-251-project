@@ -450,6 +450,11 @@ void Viewer::mainMenu()
 			ImGui::EndMenu();
 		}
 
+		if (ImGui::Checkbox("Wait for vertical refresh (VSync)", &m_vsync))
+		{
+			glfwSwapInterval(m_vsync ? 1 : 0);
+		}
+
 		ImGui::EndMenu();
 	}
 }
