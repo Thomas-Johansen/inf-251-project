@@ -9,6 +9,22 @@ uniform sampler2D diffuseTexture;
 uniform bool wireframeEnabled;
 uniform vec4 wireframeLineColor;
 
+//New imports
+uniform vec3 ambientColor;
+uniform vec3 specularColor;
+uniform float shininess;
+uniform bool hasDiffuseTexture;
+
+//Light intensity
+uniform vec3 worldLightIntensity;
+uniform vec3 ambientLightIntensity;
+
+//Blinn-Phong spesific
+uniform bool blinnPhongEnabled;
+uniform bool ambientEnabled;
+uniform bool diffuseEnabled;
+uniform bool specularEnabled;
+
 in fragmentData
 {
 	vec3 position;
@@ -28,6 +44,43 @@ void main()
 		float smallestDistance = min(min(fragment.edgeDistance[0],fragment.edgeDistance[1]),fragment.edgeDistance[2]);
 		float edgeIntensity = exp2(-1.0*smallestDistance*smallestDistance);
 		result.rgb = mix(result.rgb,wireframeLineColor.rgb,edgeIntensity*wireframeLineColor.a);
+	}
+	else if (blinnPhongEnabled)
+	{
+	result = vec4(0,0,0,1.0);
+
+	// Bling-Phong shading
+	vec3 lightDir = normalize(worldLightPosition - fragment.position);
+	vec3 viewDir = normalize(worldCameraPosition - fragment.position);
+	vec3 normal = normalize(fragment.normal);
+
+	//Ambient light
+	vec3 ambientLight = ambientLightIntensity * ambientColor;
+
+	//Diffuse component
+	float diff = max(dot(normal, lightDir), 0.0);
+	vec3 diffuse;
+	if (hasDiffuseTexture) 
+	{
+		diffuse = diff * (worldLightIntensity * diffuseColor.rgb * texture(diffuseTexture, fragment.texCoord).rgb);
+	} else 
+	{
+		diffuse = diff * (worldLightIntensity * diffuseColor.rgb);
+	}
+	
+	
+	//Specular component
+	vec3 specular;
+	if (shininess > 0) { //Compensate for possibly no shininess value
+		vec3 halfwayDir = normalize(lightDir + viewDir);
+		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+		specular = worldLightIntensity * spec * specularColor.rgb;
+	}
+
+	if (ambientEnabled) {result.rgb += ambientLight;}
+	if (diffuseEnabled) {result.rgb += diffuse;}
+	if (specularEnabled) {result.rgb += specular;}
+	//result.rgb = ambientColor + diffuse + specular;
 	}
 
 	fragColor = result;

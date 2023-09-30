@@ -77,16 +77,44 @@ void ModelRenderer::display()
 	static bool lightSourceEnabled = true;
 	static vec4 wireframeLineColor = vec4(1.0f);
 
+	//New menu options for Shader
+	static bool blinnPhongEnabled = false;
+	static bool ambientEnabled = true;
+	static bool diffuseEnabled = true;
+	static bool specularEnabled = true;
+	//Light options
+	static vec3 worldLightIntensity = vec3(1,1,1);
+	static vec3 ambientLightIntensity = vec3(1,1,1);
+
+	//Boolean for if texture
+	static bool hasDiffuseTexture = false;
+
 	if (ImGui::BeginMenu("Model"))
 	{
+
 		ImGui::Checkbox("Wireframe Enabled", &wireframeEnabled);
+		ImGui::Checkbox("Blinn-Phong Enabled", &blinnPhongEnabled);
 		ImGui::Checkbox("Light Source Enabled", &lightSourceEnabled);
+		
 
 		if (wireframeEnabled)
 		{
 			if (ImGui::CollapsingHeader("Wireframe"))
 			{
 				ImGui::ColorEdit4("Line Color", (float*)&wireframeLineColor, ImGuiColorEditFlags_AlphaBar);
+			}
+		}
+		//Blinn Phong options
+		if (blinnPhongEnabled) 
+		{
+			if (ImGui::CollapsingHeader("Blinn-Phong"))
+			{
+				ImGui::Checkbox("Ambient Enabled", &ambientEnabled);
+				ImGui::Checkbox("Diffuse Enabled", &diffuseEnabled);
+				ImGui::Checkbox("Specular Enabled", &specularEnabled);
+				ImGui::ColorEdit3("World Light Intensity", (float*)&worldLightIntensity, ImGuiColorEditFlags_AlphaBar);
+				ImGui::ColorEdit3("Ambient Light Intensity", (float*)&ambientLightIntensity, ImGuiColorEditFlags_AlphaBar);
+
 			}
 		}
 
@@ -113,6 +141,18 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("worldLightPosition", vec3(worldLightPosition));
 	shaderProgramModelBase->setUniform("wireframeEnabled", wireframeEnabled);
 	shaderProgramModelBase->setUniform("wireframeLineColor", wireframeLineColor);
+
+	//Light intensity
+	shaderProgramModelBase->setUniform("worldLightIntensity", worldLightIntensity);
+	shaderProgramModelBase->setUniform("ambientLightIntensity", ambientLightIntensity);
+
+
+	//Blinn-Phong Menu options
+	shaderProgramModelBase->setUniform("blinnPhongEnabled", blinnPhongEnabled);
+	shaderProgramModelBase->setUniform("ambientEnabled", ambientEnabled);
+	shaderProgramModelBase->setUniform("diffuseEnabled", diffuseEnabled);
+	shaderProgramModelBase->setUniform("specularEnabled", specularEnabled);
+
 	
 	shaderProgramModelBase->use();
 
@@ -122,13 +162,29 @@ void ModelRenderer::display()
 		{
 			const Material & material = materials.at(groups.at(i).materialIndex);
 
+			//Parse ambient specular diffuse color etc:
+			shaderProgramModelBase->setUniform("ambientColor", material.ambient);
 			shaderProgramModelBase->setUniform("diffuseColor", material.diffuse);
+			shaderProgramModelBase->setUniform("specularColor", material.specular);
+			shaderProgramModelBase->setUniform("shininess", material.shininess);
+
+			
 
 			if (material.diffuseTexture)
 			{
 				shaderProgramModelBase->setUniform("diffuseTexture", 0);
 				material.diffuseTexture->bindActive(0);
+				//If case in shader
+				hasDiffuseTexture = true;
+				shaderProgramModelBase->setUniform("hasDiffuseTexture", hasDiffuseTexture);
 			}
+			else 
+			{
+				hasDiffuseTexture = false;
+			}
+
+			//TODO: Specular & Ambient texture, if neccessary
+
 
 			viewer()->scene()->model()->vertexArray().drawElements(GL_TRIANGLES, groups.at(i).count(), GL_UNSIGNED_INT, (void*)(sizeof(GLuint)*groups.at(i).startIndex));
 

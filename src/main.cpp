@@ -74,6 +74,16 @@ int main(int argc, char *argv[])
 
 	// Enable debug logging
 	globjects::DebugMessage::enable();
+
+	GLuint ids = 1280;
+	globjects::DebugMessage::setCallback([ids](const globjects::DebugMessage& message) {
+		if (message.id() == ids) {
+			return;
+		}
+		else {
+			std::cout << message.toString() << "  " << message.id() << std::endl;
+		}
+		});
 	
 	globjects::debug()
 		<< "OpenGL Version:  " << glbinding::aux::ContextInfo::version() << std::endl
