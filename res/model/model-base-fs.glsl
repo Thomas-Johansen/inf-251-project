@@ -25,6 +25,9 @@ uniform bool ambientEnabled;
 uniform bool diffuseEnabled;
 uniform bool specularEnabled;
 
+//Toon spesific
+uniform bool toonEnabled;
+
 in fragmentData
 {
 	vec3 position;
@@ -81,6 +84,54 @@ void main()
 	if (diffuseEnabled) {result.rgb += diffuse;}
 	if (specularEnabled) {result.rgb += specular;}
 	//result.rgb = ambientColor + diffuse + specular;
+	} 
+	else if (toonEnabled)
+	{
+		// Toon shading code goes here
+		vec4 toonResult;
+
+		vec3 lightDir = normalize(worldLightPosition - fragment.position);
+		vec3 normal = normalize(fragment.normal);
+
+		// Calculate lighting intensity 
+		float lightIntensity = dot(normal, lightDir);
+		//lightIntensity += 0.5;
+
+		// Define thresholds for the different toon shading levels
+		float threshold1 = 0.2;  
+		float threshold2 = 0.5;
+		float threshold3 = 0.7;
+
+		// Quantize the diffuse color based on lightIntensity and thresholds
+		vec3 quantizedDiffuseColor;
+
+		//Diffuse component
+		float diff = max(dot(normal, lightDir), 0.0);
+		vec3 diffuse;
+		if (hasDiffuseTexture) 
+		{
+			diffuse = diff * (worldLightIntensity * diffuseColor.rgb * texture(diffuseTexture, fragment.texCoord).rgb);
+		} else 
+		{
+			diffuse = diff * (worldLightIntensity * diffuseColor.rgb);
+		}
+
+		if (lightIntensity > threshold3) {
+			quantizedDiffuseColor = round(diffuse * 12.0) / 12.0;  
+		} else if (lightIntensity > threshold2) {
+			quantizedDiffuseColor = round(diffuse * 8.0) / 8.0;  
+		} else if (lightIntensity > threshold1) {
+			quantizedDiffuseColor = round(diffuse * 4.0) / 4.0;  
+		} else {
+			quantizedDiffuseColor = round(diffuse * 2.0) / 2.0;  
+		}
+
+		// Apply the quantized color to the toon shading result
+		float lightScale = 2;
+		toonResult.rgb = quantizedDiffuseColor * lightScale;
+
+		// Apply toon shading result to the final result
+		result = toonResult;
 	}
 
 	fragColor = result;

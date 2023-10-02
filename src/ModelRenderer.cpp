@@ -82,18 +82,17 @@ void ModelRenderer::display()
 	static bool ambientEnabled = true;
 	static bool diffuseEnabled = true;
 	static bool specularEnabled = true;
+	static bool toonEnabled = false;
 	//Light options
 	static vec3 worldLightIntensity = vec3(1,1,1);
-	static vec3 ambientLightIntensity = vec3(1,1,1);
-
-	//Boolean for if texture
-	static bool hasDiffuseTexture = false;
+	static vec3 ambientLightIntensity = vec3(0.1f,0.08f,0.06f);
 
 	if (ImGui::BeginMenu("Model"))
 	{
 
 		ImGui::Checkbox("Wireframe Enabled", &wireframeEnabled);
 		ImGui::Checkbox("Blinn-Phong Enabled", &blinnPhongEnabled);
+		ImGui::Checkbox("Toon Enabled", &toonEnabled);
 		ImGui::Checkbox("Light Source Enabled", &lightSourceEnabled);
 		
 
@@ -117,6 +116,8 @@ void ModelRenderer::display()
 
 			}
 		}
+		//Toon options
+
 
 		if (ImGui::CollapsingHeader("Groups"))
 		{
@@ -153,6 +154,9 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("diffuseEnabled", diffuseEnabled);
 	shaderProgramModelBase->setUniform("specularEnabled", specularEnabled);
 
+	//Toon menu options
+	shaderProgramModelBase->setUniform("toonEnabled", toonEnabled);
+
 	
 	shaderProgramModelBase->use();
 
@@ -174,13 +178,11 @@ void ModelRenderer::display()
 			{
 				shaderProgramModelBase->setUniform("diffuseTexture", 0);
 				material.diffuseTexture->bindActive(0);
-				//If case in shader
-				hasDiffuseTexture = true;
-				shaderProgramModelBase->setUniform("hasDiffuseTexture", hasDiffuseTexture);
+				shaderProgramModelBase->setUniform("hasDiffuseTexture", true);
 			}
 			else 
 			{
-				hasDiffuseTexture = false;
+				shaderProgramModelBase->setUniform("hasDiffuseTexture", false);
 			}
 
 			//TODO: Specular & Ambient texture, if neccessary
