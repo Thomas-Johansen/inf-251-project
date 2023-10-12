@@ -420,33 +420,42 @@ void Viewer::renderUi()
 	ImGui_ImplOpenGL3_RenderDrawData(draw_data);
 }
 
+void Viewer::loadNewModel()
+{
+	globjects::debug() << "Load Model";
+
+	std::string fileName = "./models/bunny/bunny.obj";
+
+	// Open a file dialog to choose a model file
+	const char* filterExtensions[] = { "*.obj" };
+	const char* openfileName = tinyfd_openFileDialog("Open File", "./", 1, filterExtensions, "Wavefront Files (*.obj)", 0);
+
+	if (openfileName)
+	{
+		fileName = std::string(openfileName);
+		m_scene->model()->load(fileName);
+		
+
+		auto scene = std::make_unique<Scene>();
+		//scene->model()->load(fileName);
+		// Scaling the model's bounding box to the canonical view volume
+		vec3 boundingBoxSize = scene->model()->maximumBounds() - scene->model()->minimumBounds();
+		float maximumSize = std::max(std::max(boundingBoxSize.x, boundingBoxSize.y), boundingBoxSize.z);
+		mat4 modelTransform = scale(vec3(2.0f) / vec3(maximumSize));
+		modelTransform = modelTransform * translate(-0.5f * (scene->model()->minimumBounds() + scene->model()->maximumBounds()));
+
+		setModelTransform(modelTransform);
+
+	}
+}
+
 void Viewer::mainMenu()
 {
 	if (ImGui::BeginMenu("File"))
 	{
 		if (ImGui::MenuItem("Load Model"))
 		{
-			std::string fileName = "./models/bunny/bunny.obj";
-
-			// Open a file dialog to choose a model file
-			const char* filterExtensions[] = { "*.obj" };
-			const char* openfileName = tinyfd_openFileDialog("Open File", "./", 1, filterExtensions, "Wavefront Files (*.obj)", 0);
-
-			if (openfileName) 
-			{
-				fileName = std::string(openfileName);
-			}
-
-			auto scene = std::make_unique<Scene>();
-			scene->model()->load(fileName);
-			// Scaling the model's bounding box to the canonical view volume
-			vec3 boundingBoxSize = scene->model()->maximumBounds() - scene->model()->minimumBounds();
-			float maximumSize = std::max(std::max(boundingBoxSize.x, boundingBoxSize.y), boundingBoxSize.z);
-			mat4 modelTransform = scale(vec3(2.0f) / vec3(maximumSize));
-			modelTransform = modelTransform * translate(-0.5f * (scene->model()->minimumBounds() + scene->model()->maximumBounds()));
-
-			setModelTransform(modelTransform);
-
+			loadNewModel();
 		}
 
 

@@ -86,6 +86,8 @@ void ModelRenderer::display()
 	//Light options
 	static vec3 worldLightIntensity = vec3(1,1,1);
 	static vec3 ambientLightIntensity = vec3(0.1f,0.08f,0.06f);
+	static float shininessMultiplier = 1.0f;
+	
 
 	if (ImGui::BeginMenu("Model"))
 	{
@@ -113,6 +115,7 @@ void ModelRenderer::display()
 				ImGui::Checkbox("Specular Enabled", &specularEnabled);
 				ImGui::ColorEdit3("World Light Intensity", (float*)&worldLightIntensity, ImGuiColorEditFlags_AlphaBar);
 				ImGui::ColorEdit3("Ambient Light Intensity", (float*)&ambientLightIntensity, ImGuiColorEditFlags_AlphaBar);
+				ImGui::SliderFloat("Shininess Multiplier", &shininessMultiplier, 0.0f, 100.0f);
 
 			}
 		}
@@ -153,6 +156,7 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("ambientEnabled", ambientEnabled);
 	shaderProgramModelBase->setUniform("diffuseEnabled", diffuseEnabled);
 	shaderProgramModelBase->setUniform("specularEnabled", specularEnabled);
+	shaderProgramModelBase->setUniform("shininessMultiplier", shininessMultiplier);
 
 	//Toon menu options
 	shaderProgramModelBase->setUniform("toonEnabled", toonEnabled);
@@ -185,7 +189,29 @@ void ModelRenderer::display()
 				shaderProgramModelBase->setUniform("hasDiffuseTexture", false);
 			}
 
-			//TODO: Specular & Ambient texture, if neccessary
+			//Specular & Ambient texture
+			if (material.ambientTexture)
+			{
+				shaderProgramModelBase->setUniform("ambientTexture", 0);
+				material.diffuseTexture->bindActive(0);
+				shaderProgramModelBase->setUniform("hasAmbientTexture", true);
+			}
+			else
+			{
+				shaderProgramModelBase->setUniform("hasAmbientTexture", false);
+			}
+
+
+			if (material.specularTexture)
+			{
+				shaderProgramModelBase->setUniform("specualarTexture", 0);
+				material.diffuseTexture->bindActive(0);
+				shaderProgramModelBase->setUniform("hasSpecularTexture", true);
+			}
+			else 
+			{
+				shaderProgramModelBase->setUniform("hasSpecularTexture", false);
+			}
 
 
 			viewer()->scene()->model()->vertexArray().drawElements(GL_TRIANGLES, groups.at(i).count(), GL_UNSIGNED_INT, (void*)(sizeof(GLuint)*groups.at(i).startIndex));
@@ -193,6 +219,15 @@ void ModelRenderer::display()
 			if (material.diffuseTexture)
 			{
 				material.diffuseTexture->unbind();
+			}
+			//Specular & ambient
+			if (material.ambientTexture)
+			{
+				material.ambientTexture->unbind();
+			}
+			if (material.specularTexture)
+			{
+				material.specularTexture->unbind();
 			}
 		}
 	}

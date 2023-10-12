@@ -39,6 +39,8 @@ namespace minity
 		void setLightTransform(const glm::mat4& m);
 		void setProjectionTransform(const glm::mat4& m);
 
+		void loadNewModel();
+
 		glm::mat4 modelViewTransform() const;
 		glm::mat4 modelViewProjectionTransform() const;
 

@@ -24,9 +24,16 @@ uniform bool blinnPhongEnabled;
 uniform bool ambientEnabled;
 uniform bool diffuseEnabled;
 uniform bool specularEnabled;
+uniform float shininessMultiplier;
 
 //Toon spesific
 uniform bool toonEnabled;
+
+//Assignmet 2 spesific
+uniform bool hasAmbientTexture;
+uniform bool hasSpecularTexture;
+uniform sampler2D ambientTexture;
+uniform sampler2D specularTexture;
 
 in fragmentData
 {
@@ -65,7 +72,7 @@ void main()
 	vec3 diffuse;
 	if (hasDiffuseTexture) 
 	{
-		diffuse = diff * (worldLightIntensity * diffuseColor.rgb * texture(diffuseTexture, fragment.texCoord).rgb);
+		diffuse = diff * (worldLightIntensity *  texture(diffuseTexture, fragment.texCoord).rgb);
 	} else 
 	{
 		diffuse = diff * (worldLightIntensity * diffuseColor.rgb);
@@ -77,7 +84,7 @@ void main()
 	if (shininess > 0) { //Compensate for possibly no shininess value
 		vec3 halfwayDir = normalize(lightDir + viewDir);
 		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-		specular = worldLightIntensity * spec * specularColor.rgb;
+		specular = worldLightIntensity * spec * (specularColor.rgb * shininessMultiplier);
 	}
 
 	if (ambientEnabled) {result.rgb += ambientLight;}
@@ -110,7 +117,7 @@ void main()
 		vec3 diffuse;
 		if (hasDiffuseTexture) 
 		{
-			diffuse = diff * (worldLightIntensity * diffuseColor.rgb * texture(diffuseTexture, fragment.texCoord).rgb);
+			diffuse = diff * (worldLightIntensity * texture(diffuseTexture, fragment.texCoord).rgb);
 		} else 
 		{
 			diffuse = diff * (worldLightIntensity * diffuseColor.rgb);
