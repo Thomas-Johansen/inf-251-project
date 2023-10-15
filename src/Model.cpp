@@ -124,6 +124,8 @@ public:
 		//Assignment 2 new imports
 		//Object Normals Map
 		std::string  map_ObjectNormals;
+		//Tangent Normals Map
+		std::string map_TangentNormals;
 	};
 
 	bool loadObjFile(const std::string & filename)
@@ -664,7 +666,7 @@ public:
 
 				newMaterial.bumpTexture = std::move(loadTexture(texturePath.string()));
 			}
-
+			//Assignment 2 - Object / Tangent Normal Map
 			if (!m.map_ObjectNormals.empty())
 			{
 				std::filesystem::path texturePath = m.map_ObjectNormals;
@@ -676,6 +678,19 @@ public:
 				}
 
 				newMaterial.objectNormals = std::move(loadTexture(texturePath.string()));
+			}
+
+			if (!m.map_TangentNormals.empty())
+			{
+				std::filesystem::path texturePath = m.map_TangentNormals;
+
+				if (!texturePath.is_absolute())
+				{
+					texturePath = path.parent_path();
+					texturePath.append(m.map_TangentNormals);
+				}
+
+				newMaterial.tangentNormals = std::move(loadTexture(texturePath.string()));
 			}
 
 			m_materials.push_back(newMaterial);
@@ -840,7 +855,17 @@ public:
 							map_ObjectNormals = trim(map_ObjectNormals);
 							materials[currentMaterialIndex].map_ObjectNormals = map_ObjectNormals;
 						}
+					}
+					// Tangent Normal Map
+					else if (token == "map_tangentnormals" || token == "map_tangentNormals" || token == "map_TangentNormals" || token == "tangentnormals" || token == "tangentNormals")
+					{
+						std::string map_TangentNormals;
+						if (getline(iss, map_TangentNormals))
+						{
+							map_TangentNormals = trim(map_TangentNormals);
+							materials[currentMaterialIndex].map_TangentNormals = map_TangentNormals;
 						}
+					}
 				}
 			}
 		}
