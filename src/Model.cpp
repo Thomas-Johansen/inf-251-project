@@ -122,6 +122,8 @@ public:
 		// Bump Map
 		std::string map_bump;
 		//Assignment 2 new imports
+		//Object Normals Map
+		std::string  map_ObjectNormals;
 	};
 
 	bool loadObjFile(const std::string & filename)
@@ -663,6 +665,19 @@ public:
 				newMaterial.bumpTexture = std::move(loadTexture(texturePath.string()));
 			}
 
+			if (!m.map_ObjectNormals.empty())
+			{
+				std::filesystem::path texturePath = m.map_ObjectNormals;
+
+				if (!texturePath.is_absolute())
+				{
+					texturePath = path.parent_path();
+					texturePath.append(m.map_ObjectNormals);
+				}
+
+				newMaterial.objectNormals = std::move(loadTexture(texturePath.string()));
+			}
+
 			m_materials.push_back(newMaterial);
 
 		}
@@ -815,6 +830,17 @@ public:
 							materials[currentMaterialIndex].map_bump = map_bump;
 						}
 					}
+					//Assignment 2
+					// Object Normal Map
+					else if (token == "map_objectnormals" || token == "map_objectNormals" || token == "map_ObjectNormals" || token == "objectnormals" || token == "objectNormals")
+					{
+						std::string map_ObjectNormals;
+						if (getline(iss, map_ObjectNormals))
+						{
+							map_ObjectNormals = trim(map_ObjectNormals);
+							materials[currentMaterialIndex].map_ObjectNormals = map_ObjectNormals;
+						}
+						}
 				}
 			}
 		}

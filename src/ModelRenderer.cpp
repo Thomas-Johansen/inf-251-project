@@ -227,8 +227,16 @@ void ModelRenderer::display()
 			}
 
 			//Normal mapping textures
-			if (material.bumpTexture) { std::cout << "Found Texture?"; }
-			else { std::cout << "Not found"; }
+			if (material.objectNormals)
+			{
+				shaderProgramModelBase->setUniform("objectNormals", 3);
+				material.objectNormals->bindActive(2);
+				shaderProgramModelBase->setUniform("hasObjectNormals", true);
+			}
+			else
+			{
+				shaderProgramModelBase->setUniform("hasSpecularTexture", false);
+			}
 			
 
 
@@ -246,6 +254,10 @@ void ModelRenderer::display()
 			if (material.specularTexture)
 			{
 				material.specularTexture->unbind();
+			}
+			if (material.objectNormals)
+			{
+				material.objectNormals->unbind();
 			}
 		}
 	}
