@@ -101,7 +101,7 @@ void ModelRenderer::display()
 		ImGui::RadioButton("Toon Enabled", &shaderMenu, 2);
 		//Normal mapping
 		ImGui::Separator();
-		ImGui::RadioButton("No Normal", &normalMenu, 0);
+		ImGui::RadioButton("World Space Normal?", &normalMenu, 0);
 		ImGui::RadioButton("Object Space Normal", &normalMenu, 1);
 		ImGui::RadioButton("Tangent Space Normal", &normalMenu, 2);
 
@@ -227,16 +227,18 @@ void ModelRenderer::display()
 			}
 
 			//Normal mapping textures
+			//Normal matrix
+			shaderProgramModelBase->setUniform("normalMatrix", normalMatrix);
 			//Object Space Normal Map
 			if (material.objectNormals)
 			{
 				shaderProgramModelBase->setUniform("objectNormals", 3);
-				material.objectNormals->bindActive(2);
+				material.objectNormals->bindActive(3);
 				shaderProgramModelBase->setUniform("hasObjectNormals", true);
 			}
 			else
 			{
-				shaderProgramModelBase->setUniform("hasSpecularTexture", false);
+				shaderProgramModelBase->setUniform("hasObjectNormals", false);
 			}
 			//Tangent Space Normal Map
 			

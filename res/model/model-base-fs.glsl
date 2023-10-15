@@ -33,6 +33,11 @@ uniform bool hasSpecularTexture;
 uniform sampler2D ambientTexture;
 uniform sampler2D specularTexture;
 
+uniform int normalMenu;
+uniform sampler2D objectNormals; // Object space normal map
+uniform mat3 normalMatrix; // Normal matrix for transforming object space normals to world space
+
+
 in fragmentData
 {
 	vec3 position;
@@ -47,6 +52,18 @@ void main()
 {
 	vec4 result = vec4(0.5,0.5,0.5,1.0);
 
+	//Normal Mapping code
+	vec3 normal = normalize(fragment.normal);
+	if (normalMenu == 1)
+	{
+		// Sample the object space normal map
+		vec3 objectSpaceNormal = 2.0 * texture(objectNormals, fragment.texCoord).rgb - 1.0;
+		// Transform object space normal to world space
+		normal = normalize(normalMatrix * objectSpaceNormal);
+	}
+
+
+	//Shading Code
 	if (shaderMenu == 0)
 	{
 		float smallestDistance = min(min(fragment.edgeDistance[0],fragment.edgeDistance[1]),fragment.edgeDistance[2]);
@@ -60,7 +77,8 @@ void main()
 	// Bling-Phong shading
 	vec3 lightDir = normalize(worldLightPosition - fragment.position);
 	vec3 viewDir = normalize(worldCameraPosition - fragment.position);
-	vec3 normal = normalize(fragment.normal);
+	//vec3 normal = normalize(fragment.normal); commented out to use normal map normal
+	
 
 	//Ambient light
 	vec3 ambient;
@@ -118,7 +136,7 @@ void main()
 		vec4 toonResult;
 
 		vec3 lightDir = normalize(worldLightPosition - fragment.position);
-		vec3 normal = normalize(fragment.normal);
+		//vec3 normal = normalize(fragment.normal); Commented out to use the new normal mapping normal
 
 		// Calculate lighting intensity 
 		float lightIntensity = dot(normal, lightDir);
