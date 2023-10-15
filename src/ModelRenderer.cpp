@@ -227,6 +227,7 @@ void ModelRenderer::display()
 			}
 
 			//Normal mapping textures
+			//Object Space Normal Map
 			if (material.objectNormals)
 			{
 				shaderProgramModelBase->setUniform("objectNormals", 3);
@@ -237,6 +238,7 @@ void ModelRenderer::display()
 			{
 				shaderProgramModelBase->setUniform("hasSpecularTexture", false);
 			}
+			//Tangent Space Normal Map
 			
 
 
