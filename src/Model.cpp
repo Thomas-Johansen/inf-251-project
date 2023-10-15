@@ -121,6 +121,7 @@ public:
 		std::string map_d;
 		// Bump Map
 		std::string map_bump;
+		//Assignment 2 new imports
 	};
 
 	bool loadObjFile(const std::string & filename)

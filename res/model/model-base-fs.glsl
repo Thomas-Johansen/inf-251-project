@@ -6,7 +6,6 @@ uniform vec3 worldCameraPosition;
 uniform vec3 worldLightPosition;
 uniform vec3 diffuseColor;
 uniform sampler2D diffuseTexture;
-uniform bool wireframeEnabled;
 uniform vec4 wireframeLineColor;
 
 //New imports
@@ -20,14 +19,13 @@ uniform vec3 worldLightIntensity;
 uniform vec3 ambientLightIntensity;
 
 //Blinn-Phong spesific
-uniform bool blinnPhongEnabled;
 uniform bool ambientEnabled;
 uniform bool diffuseEnabled;
 uniform bool specularEnabled;
 uniform float shininessMultiplier;
 
-//Toon spesific
-uniform bool toonEnabled;
+//Menu option general
+uniform int shaderMenu;
 
 //Assignmet 2 spesific
 uniform bool hasAmbientTexture;
@@ -49,13 +47,13 @@ void main()
 {
 	vec4 result = vec4(0.5,0.5,0.5,1.0);
 
-	if (wireframeEnabled)
+	if (shaderMenu == 0)
 	{
 		float smallestDistance = min(min(fragment.edgeDistance[0],fragment.edgeDistance[1]),fragment.edgeDistance[2]);
 		float edgeIntensity = exp2(-1.0*smallestDistance*smallestDistance);
 		result.rgb = mix(result.rgb,wireframeLineColor.rgb,edgeIntensity*wireframeLineColor.a);
 	}
-	else if (blinnPhongEnabled)
+	else if (shaderMenu == 1)
 	{
 	result = vec4(0,0,0,1.0);
 
@@ -65,7 +63,15 @@ void main()
 	vec3 normal = normalize(fragment.normal);
 
 	//Ambient light
-	vec3 ambientLight = ambientLightIntensity * ambientColor;
+	vec3 ambient;
+	if (hasAmbientTexture) 
+	{
+		ambient = texture(ambientTexture, fragment.texCoord).rgb;
+	} 
+	else
+	{
+		ambient = ambientLightIntensity * ambientColor;
+	}
 
 	//Diffuse component
 	float diff = max(dot(normal, lightDir), 0.0);
@@ -81,18 +87,32 @@ void main()
 	
 	//Specular component
 	vec3 specular;
-	if (shininess > 0) { //Compensate for possibly no shininess value
+	if (hasSpecularTexture) 
+	{
 		vec3 halfwayDir = normalize(lightDir + viewDir);
 		float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
-		specular = worldLightIntensity * spec * (specularColor.rgb * shininessMultiplier);
+		specular = worldLightIntensity * spec * (texture(specularTexture, fragment.texCoord).rgb * shininessMultiplier);
 	}
-
-	if (ambientEnabled) {result.rgb += ambientLight;}
+	else
+	{
+		if (shininess > 0) { //Compensate for possibly no shininess value
+			vec3 halfwayDir = normalize(lightDir + viewDir);
+			float spec = pow(max(dot(normal, halfwayDir), 0.0), shininess);
+			specular = worldLightIntensity * spec * (specularColor.rgb * shininessMultiplier);
+		}
+	}
+	
 	if (diffuseEnabled) {result.rgb += diffuse;}
 	if (specularEnabled) {result.rgb += specular;}
-	//result.rgb = ambientColor + diffuse + specular;
+	if (ambientEnabled) 
+	{
+		if (hasAmbientTexture) {result.rgb *= ambient;}
+		else {result.rgb += ambient;}
+	
+	}
+
 	} 
-	else if (toonEnabled)
+	else if (shaderMenu == 2)
 	{
 		// Toon shading code goes here
 		vec4 toonResult;

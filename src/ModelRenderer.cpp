@@ -83,22 +83,35 @@ void ModelRenderer::display()
 	static bool diffuseEnabled = true;
 	static bool specularEnabled = true;
 	static bool toonEnabled = false;
+	static int shaderMenu = 0;
 	//Light options
 	static vec3 worldLightIntensity = vec3(1,1,1);
 	static vec3 ambientLightIntensity = vec3(0.1f,0.08f,0.06f);
 	static float shininessMultiplier = 1.0f;
+
+	//Normal mapping
+	static int normalMenu = 0;
 	
 
 	if (ImGui::BeginMenu("Model"))
 	{
+		//Shader
+		ImGui::RadioButton("Wireframe Enabled", &shaderMenu, 0);
+		ImGui::RadioButton("Blinn-Phong Enabled", &shaderMenu, 1);
+		ImGui::RadioButton("Toon Enabled", &shaderMenu, 2);
+		//Normal mapping
+		ImGui::Separator();
+		ImGui::RadioButton("No Normal", &normalMenu, 0);
+		ImGui::RadioButton("Object Space Normal", &normalMenu, 1);
+		ImGui::RadioButton("Tangent Space Normal", &normalMenu, 2);
 
-		ImGui::Checkbox("Wireframe Enabled", &wireframeEnabled);
-		ImGui::Checkbox("Blinn-Phong Enabled", &blinnPhongEnabled);
-		ImGui::Checkbox("Toon Enabled", &toonEnabled);
+		ImGui::Separator();
 		ImGui::Checkbox("Light Source Enabled", &lightSourceEnabled);
+
+		
 		
 
-		if (wireframeEnabled)
+		if (shaderMenu == 0)
 		{
 			if (ImGui::CollapsingHeader("Wireframe"))
 			{
@@ -106,7 +119,7 @@ void ModelRenderer::display()
 			}
 		}
 		//Blinn Phong options
-		if (blinnPhongEnabled) 
+		if (shaderMenu == 1)
 		{
 			if (ImGui::CollapsingHeader("Blinn-Phong"))
 			{
@@ -120,7 +133,7 @@ void ModelRenderer::display()
 			}
 		}
 		//Toon options
-
+		//Shader menu == 2
 
 		if (ImGui::CollapsingHeader("Groups"))
 		{
@@ -151,15 +164,16 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("ambientLightIntensity", ambientLightIntensity);
 
 
-	//Blinn-Phong Menu options
-	shaderProgramModelBase->setUniform("blinnPhongEnabled", blinnPhongEnabled);
+	//Shader Menu options
+	shaderProgramModelBase->setUniform("shaderMenu", shaderMenu);
 	shaderProgramModelBase->setUniform("ambientEnabled", ambientEnabled);
 	shaderProgramModelBase->setUniform("diffuseEnabled", diffuseEnabled);
 	shaderProgramModelBase->setUniform("specularEnabled", specularEnabled);
 	shaderProgramModelBase->setUniform("shininessMultiplier", shininessMultiplier);
 
-	//Toon menu options
-	shaderProgramModelBase->setUniform("toonEnabled", toonEnabled);
+	//Normal mapping
+	shaderProgramModelBase->setUniform("normalMenu", normalMenu);
+
 
 	
 	shaderProgramModelBase->use();
@@ -188,12 +202,12 @@ void ModelRenderer::display()
 			{
 				shaderProgramModelBase->setUniform("hasDiffuseTexture", false);
 			}
-
+			
 			//Specular & Ambient texture
 			if (material.ambientTexture)
 			{
-				shaderProgramModelBase->setUniform("ambientTexture", 0);
-				material.diffuseTexture->bindActive(0);
+				shaderProgramModelBase->setUniform("ambientTexture", 1);
+				material.ambientTexture->bindActive(1);
 				shaderProgramModelBase->setUniform("hasAmbientTexture", true);
 			}
 			else
@@ -201,17 +215,21 @@ void ModelRenderer::display()
 				shaderProgramModelBase->setUniform("hasAmbientTexture", false);
 			}
 
-
 			if (material.specularTexture)
 			{
-				shaderProgramModelBase->setUniform("specualarTexture", 0);
-				material.diffuseTexture->bindActive(0);
+				shaderProgramModelBase->setUniform("specularTexture", 2);
+				material.specularTexture->bindActive(2);
 				shaderProgramModelBase->setUniform("hasSpecularTexture", true);
 			}
 			else 
 			{
 				shaderProgramModelBase->setUniform("hasSpecularTexture", false);
 			}
+
+			//Normal mapping textures
+			if (material.bumpTexture) { std::cout << "Found Texture?"; }
+			else { std::cout << "Not found"; }
+			
 
 
 			viewer()->scene()->model()->vertexArray().drawElements(GL_TRIANGLES, groups.at(i).count(), GL_UNSIGNED_INT, (void*)(sizeof(GLuint)*groups.at(i).startIndex));
