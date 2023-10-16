@@ -20,6 +20,8 @@ out fragmentData
 	vec3 normal;
 	vec2 texCoord;
 	noperspective vec3 edgeDistance;
+	vec3 tangent; // Pass tangent as an attribute
+	vec3 bitangent; // Pass bitangent as an attribute
 } fragment;
 
 void main(void)
@@ -46,6 +48,17 @@ void main(void)
 		vec3 ed = vec3(0.0);
 		ed[i] = area / length(v[i]);
 		fragment.edgeDistance = ed;
+
+		// Calculate the tangent and bitangent vectors
+        vec3 E1 = vertices[(i + 1) % 3].position - vertices[i].position;
+        vec3 E2 = vertices[(i + 2) % 3].position - vertices[i].position;
+        vec2 deltaTexCoord1 = vertices[(i + 1) % 3].texCoord - vertices[i].texCoord;
+        vec2 deltaTexCoord2 = vertices[(i + 2) % 3].texCoord - vertices[i].texCoord;
+
+        float f = 1.0 / (deltaTexCoord1.x * deltaTexCoord2.y - deltaTexCoord2.x * deltaTexCoord1.y);
+
+        fragment.tangent = f * (deltaTexCoord2.y * E1 - deltaTexCoord1.y * E2);
+        fragment.bitangent = f * (-deltaTexCoord2.x * E1 + deltaTexCoord1.x * E2);
 
 		EmitVertex();
 	}

@@ -35,7 +35,14 @@ uniform sampler2D specularTexture;
 
 uniform int normalMenu;
 uniform sampler2D objectNormals; // Object space normal map
+uniform sampler2D tangentNormals; //Tangent space normal map
 uniform mat3 normalMatrix; // Normal matrix for transforming object space normals to world space
+
+//Bump mapping
+uniform int bumpMenu;
+uniform float bumpScale;
+uniform float bumpAmplitude;
+uniform float bumpWavenumber;
 
 
 in fragmentData
@@ -44,9 +51,27 @@ in fragmentData
 	vec3 normal;
 	vec2 texCoord;
 	noperspective vec3 edgeDistance;
+	vec3 tangent; // Tangent vector from vertex shader
+    vec3 bitangent; // Bitangent vector from vertex shader
 } fragment;
 
 out vec4 fragColor;
+
+// Custom bump map function
+float customBump(float u, float v)
+{
+	float tbumpWavenumber = bumpWavenumber * 100;
+    return bumpAmplitude * pow(sin(tbumpWavenumber * u), 2.0) * pow(sin(tbumpWavenumber * v), 2.0);
+}
+
+float customBump2(float u, float v)
+{
+	float tbumpWavenumber = bumpWavenumber * 100;
+    float sineComponent = bumpAmplitude * sin(u * tbumpWavenumber );
+    float tangentComponent = bumpAmplitude * abs(tan(v * tbumpWavenumber));
+
+    return sineComponent + tangentComponent;
+}
 
 void main()
 {
@@ -58,9 +83,38 @@ void main()
 	{
 		// Sample the object space normal map
 		vec3 objectSpaceNormal = 2.0 * texture(objectNormals, fragment.texCoord).rgb - 1.0;
-		// Transform object space normal to world space
-		normal = normalize(normalMatrix * objectSpaceNormal);
+		// Transform object space normal to world space, or not, since that breaks it?
+		normal = normalize(objectSpaceNormal);
 	}
+	if (normalMenu == 2)
+	{
+		// Sample the tangent space normal map
+		vec3 tangentSpaceNormal = 2.0 * texture(tangentNormals, fragment.texCoord).rgb - 1.0;
+
+		// Transform the tangent space normal to world space
+		normal = normalize(tangentSpaceNormal.x * fragment.tangent + tangentSpaceNormal.y * fragment.bitangent + tangentSpaceNormal.z * fragment.normal);
+	}
+
+	//Bump mapping code
+	if (bumpMenu == 1)
+	{
+		float bump = customBump(fragment.texCoord.x, fragment.texCoord.y);
+		 //Calculate the perturbation in the tangent space
+		vec3 bumpVector = bumpScale * (bump - 0.5) * (fragment.tangent + fragment.bitangent);
+
+		// Apply the perturbation to the normal
+		normal = normalize(normal + bumpVector);
+	}
+	if (bumpMenu == 2)
+	{
+		float bump = customBump2(fragment.texCoord.x, fragment.texCoord.y);
+		 //Calculate the perturbation in the tangent space
+		vec3 bumpVector = bumpScale * (bump - 0.5) * (fragment.tangent + fragment.bitangent);
+
+		// Apply the perturbation to the normal
+		normal = normalize(normal + bumpVector);
+	}
+
 
 
 	//Shading Code
@@ -84,7 +138,7 @@ void main()
 	vec3 ambient;
 	if (hasAmbientTexture) 
 	{
-		ambient = texture(ambientTexture, fragment.texCoord).rgb;
+		ambient = ambientLightIntensity * ambientColor * texture(ambientTexture, fragment.texCoord).rgb;
 	} 
 	else
 	{
@@ -124,7 +178,7 @@ void main()
 	if (specularEnabled) {result.rgb += specular;}
 	if (ambientEnabled) 
 	{
-		if (hasAmbientTexture) {result.rgb *= ambient;}
+		if (hasAmbientTexture) {result.rgb += ambient;}
 		else {result.rgb += ambient;}
 	
 	}

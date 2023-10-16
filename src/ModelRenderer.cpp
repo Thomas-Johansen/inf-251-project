@@ -9,11 +9,13 @@
 #include "Model.h"
 #include <sstream>
 
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
+#include <stb_image.h>
 
 using namespace minity;
 using namespace gl;
@@ -41,6 +43,52 @@ ModelRenderer::ModelRenderer(Viewer* viewer) : Renderer(viewer)
 		{ GL_FRAGMENT_SHADER,"./res/model/model-light-fs.glsl" },
 		}, { "./res/model/model-globals.glsl" });
 }
+
+
+//Skybox test
+std::vector<std::string> faces
+{
+	"../res/skybox/right.jpg",
+	"../res/skybox/left.jpg",
+	"../res/skybox/top.jpg",
+	"../res/skybox/bottom.jpg",
+	"../res/skybox/front.jpg",
+	"../res/skybox/back.jpg"
+};
+//unsigned int cubemapTexture = loadCubemap(faces);
+
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	int width, height, nrChannels;
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+		if (data)
+		{
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+				0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data
+			);
+			stbi_image_free(data);
+		}
+		else
+		{
+			std::cout << "Cubemap tex failed to load at path: " << faces[i] << std::endl;
+			stbi_image_free(data);
+		}
+	}
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
+}
+
 
 void ModelRenderer::display()
 {
@@ -91,6 +139,11 @@ void ModelRenderer::display()
 
 	//Normal mapping
 	static int normalMenu = 0;
+	//Bump mapping
+	static int bumpMenu = 0;
+	static float bumpScale = 0.05f;
+	static float bumpAmplitude = 0.5f;
+	static float bumpWavenumber = 5;
 	
 
 	if (ImGui::BeginMenu("Model"))
@@ -101,9 +154,14 @@ void ModelRenderer::display()
 		ImGui::RadioButton("Toon Enabled", &shaderMenu, 2);
 		//Normal mapping
 		ImGui::Separator();
-		ImGui::RadioButton("World Space Normal?", &normalMenu, 0);
+		ImGui::RadioButton("No normal map", &normalMenu, 0);
 		ImGui::RadioButton("Object Space Normal", &normalMenu, 1);
 		ImGui::RadioButton("Tangent Space Normal", &normalMenu, 2);
+		//Bump mapping
+		ImGui::Separator();
+		ImGui::RadioButton("No bumb mapping", &bumpMenu, 0);
+		ImGui::RadioButton("Bump funciton 1", &bumpMenu, 1);
+		ImGui::RadioButton("Bump funciton 2", &bumpMenu, 2);
 
 		ImGui::Separator();
 		ImGui::Checkbox("Light Source Enabled", &lightSourceEnabled);
@@ -135,6 +193,19 @@ void ModelRenderer::display()
 		//Toon options
 		//Shader menu == 2
 
+		//Bump options
+		if (bumpMenu != 0)
+		{
+			if (ImGui::CollapsingHeader("Bump Map"))
+			{
+				ImGui::SliderFloat("Bump Scale", &bumpScale, 0.0f, 1.0f);
+				ImGui::SliderFloat("Amplitude", &bumpAmplitude, 0.0f, 2.0f);
+				ImGui::SliderFloat("Wavenumber", &bumpWavenumber, 0.0f, 10.0f);
+			}
+		}
+
+
+
 		if (ImGui::CollapsingHeader("Groups"))
 		{
 			for (uint i = 0; i < groups.size(); i++)
@@ -145,6 +216,10 @@ void ModelRenderer::display()
 			}
 
 		}
+
+
+
+
 
 		ImGui::EndMenu();
 	}
@@ -173,6 +248,18 @@ void ModelRenderer::display()
 
 	//Normal mapping
 	shaderProgramModelBase->setUniform("normalMenu", normalMenu);
+	//Bump mapping
+	shaderProgramModelBase->setUniform("bumpMenu", bumpMenu);
+	shaderProgramModelBase->setUniform("bumpScale", bumpScale);
+	shaderProgramModelBase->setUniform("bumpAmplitude", bumpAmplitude);
+	shaderProgramModelBase->setUniform("bumpWavenumber", bumpWavenumber);
+	
+
+	//Skybox test
+
+
+
+	
 
 
 	
@@ -241,6 +328,16 @@ void ModelRenderer::display()
 				shaderProgramModelBase->setUniform("hasObjectNormals", false);
 			}
 			//Tangent Space Normal Map
+			if (material.tangentNormals)
+			{
+				shaderProgramModelBase->setUniform("tangentNormals", 4);
+				material.tangentNormals->bindActive(4);
+				shaderProgramModelBase->setUniform("hasTangentNormals", true);
+			}
+			else
+			{
+				shaderProgramModelBase->setUniform("hasTangentNormals", false);
+			}
 			
 
 
@@ -262,6 +359,10 @@ void ModelRenderer::display()
 			if (material.objectNormals)
 			{
 				material.objectNormals->unbind();
+			}
+			if (material.tangentNormals)
+			{
+				material.tangentNormals->unbind();
 			}
 		}
 	}
