@@ -49,16 +49,31 @@ void main(void)
 		ed[i] = area / length(v[i]);
 		fragment.edgeDistance = ed;
 
-		// Calculate the tangent and bitangent vectors
-        vec3 E1 = vertices[(i + 1) % 3].position - vertices[i].position;
-        vec3 E2 = vertices[(i + 2) % 3].position - vertices[i].position;
-        vec2 deltaTexCoord1 = vertices[(i + 1) % 3].texCoord - vertices[i].texCoord;
-        vec2 deltaTexCoord2 = vertices[(i + 2) % 3].texCoord - vertices[i].texCoord;
+    // Calculate tangent and bitangent
+    vec3 p0 = vertices[0].position;
+    vec3 p1 = vertices[1].position;
+    vec3 p2 = vertices[2].position;
 
-        float f = 1.0 / (deltaTexCoord1.x * deltaTexCoord2.y - deltaTexCoord2.x * deltaTexCoord1.y);
+    vec2 uv0 = vertices[0].texCoord;
+    vec2 uv1 = vertices[1].texCoord;
+    vec2 uv2 = vertices[2].texCoord;
+    
+    vec3 e0 = p1 - p0;
+    vec3 e1 = p2 - p0;
+    vec2 dUV0 = uv1 - uv0;
+    vec2 dUV1 = uv2 - uv0;
 
-        fragment.tangent = f * (deltaTexCoord2.y * E1 - deltaTexCoord1.y * E2);
-        fragment.bitangent = f * (-deltaTexCoord2.x * E1 + deltaTexCoord1.x * E2);
+    float f = 1.0 / (dUV0.x * dUV1.y - dUV1.x * dUV0.y);
+
+    fragment.tangent.x = f * (dUV1.y * e0.x - dUV0.y * e1.x);
+    fragment.tangent.y = f * (dUV1.y * e0.y - dUV0.y * e1.y);
+    fragment.tangent.z = f * (dUV1.y * e0.z - dUV0.y * e1.z);
+    fragment.tangent = normalize(fragment.tangent);
+
+    fragment.bitangent.x = f * (-dUV1.x * e0.x + dUV0.x * e1.x);
+    fragment.bitangent.y = f * (-dUV1.x * e0.y + dUV0.x * e1.y);
+    fragment.bitangent.z = f * (-dUV1.x * e0.z + dUV0.x * e1.z);
+    fragment.bitangent = normalize(fragment.bitangent);
 
 		EmitVertex();
 	}

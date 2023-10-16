@@ -46,14 +46,15 @@ ModelRenderer::ModelRenderer(Viewer* viewer) : Renderer(viewer)
 
 
 //Skybox test
+/*
 std::vector<std::string> faces
 {
-	"../res/skybox/right.jpg",
-	"../res/skybox/left.jpg",
-	"../res/skybox/top.jpg",
-	"../res/skybox/bottom.jpg",
-	"../res/skybox/front.jpg",
-	"../res/skybox/back.jpg"
+	"C:/Users/thoma/Downloads/project/res/skybox/right.jpg",
+	"C:/Users/thoma/Downloads/project/res/skybox/left.jpg",
+	"C:/Users/thoma/Downloads/project/res/skybox/top.jpg",
+	"C:/Users/thoma/Downloads/project/res/skybox/bottom.jpg",
+	"C:/Users/thoma/Downloads/project/res/skybox/front.jpg",
+	"C:/Users/thoma/Downloads/project/res/skybox/back.jpg"
 };
 //unsigned int cubemapTexture = loadCubemap(faces);
 
@@ -88,6 +89,9 @@ unsigned int loadCubemap(std::vector<std::string> faces)
 
 	return textureID;
 }
+
+*/
+
 
 
 void ModelRenderer::display()
@@ -131,7 +135,7 @@ void ModelRenderer::display()
 	static bool diffuseEnabled = true;
 	static bool specularEnabled = true;
 	static bool toonEnabled = false;
-	static int shaderMenu = 0;
+	static int shaderMenu = 1;
 	//Light options
 	static vec3 worldLightIntensity = vec3(1,1,1);
 	static vec3 ambientLightIntensity = vec3(0.1f,0.08f,0.06f);
@@ -152,6 +156,7 @@ void ModelRenderer::display()
 		ImGui::RadioButton("Wireframe Enabled", &shaderMenu, 0);
 		ImGui::RadioButton("Blinn-Phong Enabled", &shaderMenu, 1);
 		ImGui::RadioButton("Toon Enabled", &shaderMenu, 2);
+		//ImGui::RadioButton("Skybox Enabled", &shaderMenu, 3);
 		//Normal mapping
 		ImGui::Separator();
 		ImGui::RadioButton("No normal map", &normalMenu, 0);
@@ -253,13 +258,7 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("bumpScale", bumpScale);
 	shaderProgramModelBase->setUniform("bumpAmplitude", bumpAmplitude);
 	shaderProgramModelBase->setUniform("bumpWavenumber", bumpWavenumber);
-	
-
-	//Skybox test
-
-
-
-	
+		
 
 
 	
