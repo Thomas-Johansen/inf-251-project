@@ -31,7 +31,8 @@ namespace minity
 		{
 			return endIndex - startIndex + 1;
 		}
-
+		
+		std::vector<glm::uint> indexes = std::vector<glm::uint>{};
 	};
 
 	struct Material
@@ -66,6 +67,9 @@ namespace minity
 
 		glm::vec3 minimumBounds() const;
 		glm::vec3 maximumBounds() const;
+		//
+		glm::vec3 modelCenter() const;
+		const std::vector<glm::vec3>& groupVectors() const;
 
 		globjects::VertexArray & vertexArray();
 		globjects::Buffer & vertexBuffer();
@@ -82,6 +86,9 @@ namespace minity
 
 		glm::vec3 m_minimumBounds = glm::vec3(0.0);
 		glm::vec3 m_maximumBounds = glm::vec3(0.0);
+		//
+		glm::vec3 m_modelCenter = glm::vec3(0.0);
+		std::vector < glm::vec3 > m_groupVectors;
 
 		std::unique_ptr<globjects::VertexArray> m_vertexArray = std::make_unique<globjects::VertexArray>();
 		std::unique_ptr<globjects::Buffer> m_vertexBuffer = std::make_unique<globjects::Buffer>();

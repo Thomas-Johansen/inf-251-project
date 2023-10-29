@@ -145,9 +145,14 @@ void ModelRenderer::display()
 	static int normalMenu = 0;
 	//Bump mapping
 	static int bumpMenu = 0;
-	static float bumpScale = 0.05f;
 	static float bumpAmplitude = 0.5f;
 	static float bumpWavenumber = 5;
+
+	//Assignment 3
+	//Animation
+	static float explodedFloat = 0;
+	const std::vector<vec3>& groupVectors = viewer()->scene()->model()->groupVectors();
+
 	
 
 	if (ImGui::BeginMenu("Model"))
@@ -167,6 +172,27 @@ void ModelRenderer::display()
 		ImGui::RadioButton("No bumb mapping", &bumpMenu, 0);
 		ImGui::RadioButton("Bump funciton 1", &bumpMenu, 1);
 		ImGui::RadioButton("Bump funciton 2", &bumpMenu, 2);
+		//Animation
+		ImGui::Separator();
+		if (ImGui::SliderFloat("Explode", &explodedFloat, 0, 2)) 
+		{
+			std::vector<Vertex> vertices = viewer()->scene()->model()->vertices();
+			//for (uint i = 0; i < groups.size(); i++)
+			
+			auto &group = groups.at(0);
+			auto vector = groupVectors.at(0);
+			//std::cout << "Group Indexes: " << group.indexes.size() << std::endl;
+			
+			for (auto j : group.indexes)
+			{
+				//std::cout << "Index: " << j << std::endl;
+				Vertex &vertex = vertices.at(j);
+				vertex.position += ((explodedFloat) * vector); 
+			}
+			viewer()->scene()->model()->vertexBuffer().setSubData(vertices);
+		}
+
+
 
 		ImGui::Separator();
 		ImGui::Checkbox("Light Source Enabled", &lightSourceEnabled);
@@ -203,8 +229,7 @@ void ModelRenderer::display()
 		{
 			if (ImGui::CollapsingHeader("Bump Map"))
 			{
-				ImGui::SliderFloat("Bump Scale", &bumpScale, 0.0f, 1.0f);
-				ImGui::SliderFloat("Amplitude", &bumpAmplitude, 0.0f, 2.0f);
+				ImGui::SliderFloat("Amplitude", &bumpAmplitude, 0.0f, 10.0f);
 				ImGui::SliderFloat("Wavenumber", &bumpWavenumber, 0.0f, 10.0f);
 			}
 		}
@@ -255,7 +280,6 @@ void ModelRenderer::display()
 	shaderProgramModelBase->setUniform("normalMenu", normalMenu);
 	//Bump mapping
 	shaderProgramModelBase->setUniform("bumpMenu", bumpMenu);
-	shaderProgramModelBase->setUniform("bumpScale", bumpScale);
 	shaderProgramModelBase->setUniform("bumpAmplitude", bumpAmplitude);
 	shaderProgramModelBase->setUniform("bumpWavenumber", bumpWavenumber);
 		
@@ -263,6 +287,8 @@ void ModelRenderer::display()
 
 	
 	shaderProgramModelBase->use();
+
+
 
 	for (uint i = 0; i < groups.size(); i++)
 	{

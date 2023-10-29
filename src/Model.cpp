@@ -977,6 +977,7 @@ void Model::load(const std::string& filename)
 		m_indices = loader.indices();
 		m_materials = loader.materials();
 		m_groups = loader.groups();
+		
 
 		for (auto i : m_indices)
 		{
@@ -984,6 +985,34 @@ void Model::load(const std::string& filename)
 			m_minimumBounds = min(m_minimumBounds, v.position);
 			m_maximumBounds = max(m_maximumBounds, v.position);
 		}
+
+		m_modelCenter = 0.5f * (m_minimumBounds + m_maximumBounds);
+
+		std::cout << "vertices: " << m_vertices.size() << std::endl;
+		std::cout << "indices: " << m_indices.size() << std::endl;
+
+		for (auto &i : m_groups) //Group bounding box center
+		{
+			auto group_minimumBounds = vec3(std::numeric_limits<float>::max());
+			auto group_maximumBounds = vec3(-std::numeric_limits<float>::max());
+
+			for (auto j = i.startIndex; j <= i.endIndex; j++)
+			{
+				auto vertexIndex = m_indices[j];
+				const auto& v = m_vertices[vertexIndex];
+				group_minimumBounds = min(group_minimumBounds, v.position);
+				group_maximumBounds = max(group_maximumBounds, v.position);
+				if (std::find(i.indexes.begin(), i.indexes.end(), vertexIndex) == i.indexes.end())
+				{
+					i.indexes.push_back(vertexIndex);
+
+				}
+			}
+			//std::cout << "Group indexes: " << i.indexes.size() << std::endl;
+			auto groupCenterOfBoundingBox = 0.5f * (group_minimumBounds + group_maximumBounds);
+			m_groupVectors.push_back(normalize(groupCenterOfBoundingBox)); //Add normalized vector to list
+		}
+
 
 		globjects::debug() << "Minimum bounds: " << m_minimumBounds;
 		globjects::debug() << "Maximum bounds: " << m_maximumBounds;
@@ -1068,3 +1097,13 @@ Buffer & Model::indexBuffer()
 	return *m_indexBuffer.get();
 }
 
+//
+vec3 Model::modelCenter() const
+{
+	return m_modelCenter;
+}
+
+const std::vector<glm::vec3>& Model::groupVectors() const
+{
+	return m_groupVectors;
+}

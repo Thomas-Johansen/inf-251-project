@@ -40,7 +40,6 @@ uniform mat3 normalMatrix; // Normal matrix for transforming object space normal
 
 //Bump mapping
 uniform int bumpMenu;
-uniform float bumpScale;
 uniform float bumpAmplitude;
 uniform float bumpWavenumber;
 
@@ -67,8 +66,9 @@ float customBump(float u, float v)
 float customBump2(float u, float v)
 {
 	float tbumpWavenumber = bumpWavenumber * 100;
-    float sineComponent = bumpAmplitude * sin(u * tbumpWavenumber );
-    float tangentComponent = bumpAmplitude * abs(tan(v * tbumpWavenumber));
+	float tbumpAmplitude = bumpAmplitude * 0.1;
+    float sineComponent = tbumpAmplitude * sin(u * tbumpWavenumber );
+    float tangentComponent = tbumpAmplitude * abs(tan(v * tbumpWavenumber));
 
     return sineComponent + tangentComponent;
 }
@@ -96,23 +96,30 @@ void main()
 	}
 
 	//Bump mapping code
-	if (bumpMenu == 1)
+	if (bumpMenu == 1) //Gives convecs bumps
 	{
 		float bump = customBump(fragment.texCoord.x, fragment.texCoord.y);
-		 //Calculate the perturbation in the tangent space
-		vec3 bumpVector = bumpScale * (bump - 0.5) * (fragment.tangent + fragment.bitangent);
+		
+		float derivU = dFdx(bump); //Get partial derivatives
+		float derivV = dFdy(bump);
+		vec3 vecU = normalize(fragment.tangent); //Normalize tangent and bitangent
+		vec3 vecV = normalize(fragment.bitangent);
 
-		// Apply the perturbation to the normal
-		normal = normalize(normal + bumpVector);
+		normal += derivV * cross(vecU, normal) + derivU * cross(normal, vecV); //Perturb normal by derivatives
+		normal = normalize(normal);
+
 	}
-	if (bumpMenu == 2)
+	if (bumpMenu == 2) //Gives concave bumps
 	{
-		float bump = customBump2(fragment.texCoord.x, fragment.texCoord.y);
-		 //Calculate the perturbation in the tangent space
-		vec3 bumpVector = bumpScale * (bump - 0.5) * (fragment.tangent + fragment.bitangent);
+		float bump = customBump(fragment.texCoord.x, fragment.texCoord.y);
+		
+		float derivU = dFdx(bump);
+		float derivV = dFdy(bump);
+		vec3 vecU = normalize(fragment.tangent);
+		vec3 vecV = normalize(fragment.bitangent);
 
-		// Apply the perturbation to the normal
-		normal = normalize(normal + bumpVector);
+		normal += derivV * vecV + derivU * vecU; //hmm, vecV is basically cross(normal, vecU). Which means that just using vecV gives concave instead of convecs
+		normal = normalize(normal);
 	}
 
 
