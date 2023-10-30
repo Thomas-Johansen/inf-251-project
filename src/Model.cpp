@@ -996,7 +996,7 @@ void Model::load(const std::string& filename)
 			auto group_minimumBounds = vec3(std::numeric_limits<float>::max());
 			auto group_maximumBounds = vec3(-std::numeric_limits<float>::max());
 
-			for (auto j = i.startIndex; j <= i.endIndex; j++)
+			for (auto j = i.startIndex; j < i.endIndex; j++)
 			{
 				auto vertexIndex = m_indices[j];
 				const auto& v = m_vertices[vertexIndex];
@@ -1017,7 +1017,7 @@ void Model::load(const std::string& filename)
 		globjects::debug() << "Minimum bounds: " << m_minimumBounds;
 		globjects::debug() << "Maximum bounds: " << m_maximumBounds;
 
-		m_vertexBuffer->setStorage(m_vertices, gl::GL_NONE_BIT);
+		m_vertexBuffer->setStorage(m_vertices, gl::GL_DYNAMIC_STORAGE_BIT);
 		m_indexBuffer->setStorage(m_indices, gl::GL_NONE_BIT);
 
 		auto vertexBindingPosition = m_vertexArray->binding(0);

@@ -174,20 +174,20 @@ void ModelRenderer::display()
 		ImGui::RadioButton("Bump funciton 2", &bumpMenu, 2);
 		//Animation
 		ImGui::Separator();
-		if (ImGui::SliderFloat("Explode", &explodedFloat, 0, 2)) 
+		if (ImGui::SliderFloat("Explode", &explodedFloat, 0, 100)) 
 		{
 			std::vector<Vertex> vertices = viewer()->scene()->model()->vertices();
-			//for (uint i = 0; i < groups.size(); i++)
-			
-			auto &group = groups.at(0);
-			auto vector = groupVectors.at(0);
-			//std::cout << "Group Indexes: " << group.indexes.size() << std::endl;
-			
-			for (auto j : group.indexes)
-			{
-				//std::cout << "Index: " << j << std::endl;
-				Vertex &vertex = vertices.at(j);
-				vertex.position += ((explodedFloat) * vector); 
+			for (uint i = 0; i < groups.size(); i++)
+			{ 
+				auto& group = groups.at(i);
+				auto vector = groupVectors.at(i);
+
+				for (auto j : group.indexes)
+				{
+					Vertex& vertex = vertices.at(j);
+					vertex.position += ((explodedFloat)*vector);
+				}
+				
 			}
 			viewer()->scene()->model()->vertexBuffer().setSubData(vertices);
 		}
