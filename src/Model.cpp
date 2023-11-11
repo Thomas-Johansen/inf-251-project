@@ -1008,9 +1008,8 @@ void Model::load(const std::string& filename)
 
 				}
 			}
-			//std::cout << "Group indexes: " << i.indexes.size() << std::endl;
 			auto groupCenterOfBoundingBox = 0.5f * (group_minimumBounds + group_maximumBounds);
-			m_groupVectors.push_back(normalize(groupCenterOfBoundingBox)); //Add normalized vector to list
+			m_groupVectors.push_back(normalize(groupCenterOfBoundingBox - m_modelCenter)); //Add normalized vector to list
 		}
 
 

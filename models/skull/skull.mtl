@@ -1,0 +1,34 @@
+newmtl carne_cerebro_brain_borrame_7
+Kd 0.8 0.8 0.8
+map_Kd carne_cerebro_brain_borrame_7.png
+illum 2
+
+newmtl Mat.2
+Kd 0.7281553 0.59036 0.1376042
+illum 2
+
+newmtl bone_3_pelvis
+Kd 0.8 0.8 0.8
+map_Kd bone_3_pelvis.png
+illum 2
+
+newmtl eye_texture
+Kd 0.8 0.8 0.8
+map_Kd eye_texture.png
+illum 2
+
+newmtl colormap_skull_1024x1024_c
+Kd 0.8 0.8 0.8
+map_Kd colormap_skull_1024x1024_c.png
+illum 2
+
+newmtl cerebellum
+Kd 0.8 0.8 0.8
+map_Kd cerebellum.png
+illum 2
+
+newmtl brainsteam_2
+Kd 0.8 0.8 0.8
+map_Kd brainsteam_2.png
+illum 2
+

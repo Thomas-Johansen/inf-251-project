@@ -221,6 +221,41 @@ void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height)
 	}
 }
 
+//Animation values test:
+bool m_doAnimation = false;
+bool m_doKeyFrame = false;
+bool m_doDeleteKeyFrame = false;
+std::vector<mat4> m_viewList;
+
+bool Viewer::doAnimation()
+{
+	return m_doAnimation;
+}
+bool Viewer::doKeyFrame()
+{
+	return m_doKeyFrame;
+}
+bool Viewer::doDeleteKeyFrame()
+{
+	return m_doDeleteKeyFrame;
+}
+void Viewer::didKeyFrame()
+{
+	m_doKeyFrame = false;
+}
+void Viewer::didDeleteKeyFrame()
+{
+	m_doDeleteKeyFrame = false;
+}
+void Viewer::animationDone()
+{
+	m_doAnimation = false;
+}
+
+
+
+
+
 void Viewer::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	Viewer* viewer = static_cast<Viewer*>(glfwGetWindowUserPointer(window));
@@ -267,6 +302,21 @@ void Viewer::keyCallback(GLFWwindow* window, int key, int scancode, int action, 
 
 				viewer->m_renderers[index]->setEnabled(!enabled);
 			}
+		}
+		else if (key == GLFW_KEY_P && action == GLFW_RELEASE)
+		{
+			m_doAnimation = !m_doAnimation;
+		}
+		else if (key == GLFW_KEY_I && action == GLFW_RELEASE)
+		{
+			std::cout << "Adding Keyframe" << std::endl;
+			m_doKeyFrame = true;
+
+		}
+		else if (key == GLFW_KEY_O && action == GLFW_RELEASE)
+		{
+			std::cout << "Removing Keyframe" << std::endl;
+			m_doDeleteKeyFrame = true;
 		}
 
 
@@ -516,6 +566,25 @@ namespace minity
 		inner[2] /= scale.z;
 
 		rotation = glm::mat4{inner};
+
+		if (preMultipliedRotation)
+			translation = glm::inverse(inner) * translation;
+	}
+
+	void matrixDecompose2(const glm::mat4& matrix, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale, bool preMultipliedRotation)
+	{
+		translation = glm::vec3{ matrix[3] };
+		glm::mat3 inner = glm::mat3{ matrix };
+
+		scale.x = glm::length(inner[0]);
+		scale.y = glm::length(inner[1]);
+		scale.z = glm::length(inner[2]);
+
+		inner[0] /= scale.x;
+		inner[1] /= scale.y;
+		inner[2] /= scale.z;
+
+		rotation = glm::quat_cast(inner);
 
 		if (preMultipliedRotation)
 			translation = glm::inverse(inner) * translation;

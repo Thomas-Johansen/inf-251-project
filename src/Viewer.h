@@ -49,6 +49,14 @@ namespace minity
 
 		void saveImage(const std::string & filename);
 
+		//
+		bool doAnimation();
+		bool doKeyFrame();
+		bool doDeleteKeyFrame();
+		void didKeyFrame();
+		void didDeleteKeyFrame();
+		void animationDone();
+
 	private:
 
 		void beginFrame();
@@ -90,4 +98,5 @@ namespace minity
 	 * @param preMultipliedRotation If true, this will transform the translation with the inverse rotation. You can use this if the translation in the matrix is rotated (as is often the case for view matrices).
 	 */
 	void matrixDecompose(const glm::mat4& matrix, glm::vec3& translation, glm::mat4& rotation, glm::vec3& scale, bool preMultipliedRotation = false);
+	void matrixDecompose2(const glm::mat4& matrix, glm::vec3& translation, glm::quat& rotation, glm::vec3& scale, bool preMultipliedRotation = false);
 }
