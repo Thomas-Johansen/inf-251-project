@@ -53,6 +53,44 @@ void RaytraceRenderer::display()
 	shaderProgramRaytrace->setUniform("modelViewProjectionMatrix", modelViewProjectionMatrix);
 	shaderProgramRaytrace->setUniform("inverseModelViewProjectionMatrix", inverseModelViewProjectionMatrix);
 
+	//Raytrace test code
+	//Sphere
+	glm::vec3 sphereCenter(0.0f, 0.0f, 0.0f);
+	float sphereRadius = 1.0f;
+	
+
+	shaderProgramRaytrace->setUniform("sphereCenter", sphereCenter);
+	shaderProgramRaytrace->setUniform("sphereRadius", sphereRadius);
+
+	//Box
+	glm::vec3 boxCenter(1.0f, -5.0f, 1.0f);
+	glm::vec3 boxDimensions(2.0f, 2.0f, 2.0f); // Width, Height, Depth
+	glm::vec3 boxOrientation(0.0f, 0.0f, 0.0f);
+
+	shaderProgramRaytrace->setUniform("boxCenter", boxCenter);
+	shaderProgramRaytrace->setUniform("boxDimensions", boxDimensions);
+	shaderProgramRaytrace->setUniform("boxOrientation", boxOrientation);
+
+	//Plane
+	glm::vec3 planePoint(0.0f, -10.0f, 0.0f); // A point on the plane
+	glm::vec3 planeNormal(0.0f, 1.0f, 0.0f); // Normal vector
+
+	shaderProgramRaytrace->setUniform("planeCenter", planePoint);
+	shaderProgramRaytrace->setUniform("planeNormal", planeNormal);
+
+	//Cylinder
+	glm::vec3 cylinderBaseCenter(-5.0f, -1.0f, -5.0f);
+	glm::vec3 cylinderAxis(0.0f, 1.0f, 0.0f); // This could be the direction
+	float cylinderRadius = 0.5f;
+	float cylinderHeight = 1.0f;
+
+	shaderProgramRaytrace->setUniform("cylinderBaseCenter", cylinderBaseCenter);
+	shaderProgramRaytrace->setUniform("cylinderAxis", cylinderAxis);
+	shaderProgramRaytrace->setUniform("cylinderRadius", cylinderRadius);
+	shaderProgramRaytrace->setUniform("cylinderHeight", cylinderHeight);
+
+
+
 	m_quadArray->bind();
 	shaderProgramRaytrace->use();
 	// we are rendering a screen filling quad (as a tringle strip), so we can cast rays for every pixel
